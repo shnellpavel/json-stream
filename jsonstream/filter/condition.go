@@ -1,8 +1,8 @@
 package filter
 
 import (
+	"regexp"
 	"strings"
-	"text/scanner"
 	"unicode"
 
 	"github.com/pkg/errors"
@@ -11,25 +11,27 @@ import (
 // ErrInvalidOperator appears when pass a string that doesn't match any known operator
 var ErrInvalidOperator = errors.New("invalid operator")
 
-type operator string
+type Operator string
 
 // Available operators to use in conditions
 const (
-	OpEq      = operator("=")
-	OpNotEq   = operator("!=")
-	OpLt      = operator("<")
-	OpLte     = operator("<=")
-	OpGt      = operator(">")
-	OpGte     = operator(">=")
-	OpLike    = operator("~")
-	OpNotLike = operator("!~")
-	OpUnknown = operator("")
+	OpEq      = Operator("=")
+	OpNotEq   = Operator("!=")
+	OpLt      = Operator("<")
+	OpLte     = Operator("<=")
+	OpGt      = Operator(">")
+	OpGte     = Operator(">=")
+	OpLike    = Operator("~")
+	OpNotLike = Operator("!~")
+	OpUnknown = Operator("")
 )
 
-var validOperators = []operator{OpEq, OpNotEq, OpLt, OpLte, OpGt, OpGte, OpLike, OpNotLike}
+var validOperators = []Operator{OpEq, OpNotEq, OpLt, OpLte, OpGt, OpGte, OpLike, OpNotLike}
 
-func newOperator(op string) operator {
-	res := operator(strings.TrimSpace(op))
+var conditionRegexp = regexp.MustCompile(`^\s*(.+?)\s*(!?=|=|<=?|>=?|!?~)\s*(.*?)\s*$`)
+
+func newOperator(op string) Operator {
+	res := Operator(strings.TrimSpace(op))
 	for _, validOp := range validOperators {
 		if validOp == res {
 			return validOp
@@ -39,47 +41,41 @@ func newOperator(op string) operator {
 	return OpUnknown
 }
 
-func (o operator) String() string {
+func (o Operator) String() string {
 	return string(o)
 }
 
-const specialIdentRunes = "._=!<>~"
+const specialIdentRunes = "'\"._=!<>~"
 
 // Condition is parsed string expression. It used to solve inclusion of stream elem
 type Condition struct {
 	path     string
-	operator operator
+	operator Operator
 	value    string
+}
+
+func (c Condition) Path() string {
+	return c.path
+}
+
+func (c Condition) Operator() Operator {
+	return c.operator
+}
+
+func (c Condition) Value() string {
+	return c.value
 }
 
 // NewConditionFromStr builds condition object from string representation
 func NewConditionFromStr(conditionStr string) (*Condition, error) {
-	var scan scanner.Scanner
-	scan.Init(strings.NewReader(conditionStr))
-
-	scan.IsIdentRune = func(ch rune, i int) bool {
-		return strings.IndexRune(specialIdentRunes, ch) > 0 || unicode.IsLetter(ch) || unicode.IsDigit(ch) && i > 0
+	found := conditionRegexp.FindStringSubmatch(conditionStr)
+	if found == nil {
+		return nil, errors.New("invalid expression")
 	}
-	scan.Whitespace ^= 1 << ' '
 
-	var path, operatorStr, value string
-	partNum := 0
-	for tok := scan.Scan(); tok != scanner.EOF; tok = scan.Scan() {
-		if strings.TrimSpace(scan.TokenText()) == "" {
-			partNum++
-		}
-
-		switch partNum {
-		case 0:
-			path += scan.TokenText()
-		case 1:
-			operatorStr += scan.TokenText()
-		case 2:
-			value += scan.TokenText()
-		default:
-			break
-		}
-	}
+	path := found[1]
+	operatorStr := found[2]
+	value := found[3]
 
 	op := newOperator(operatorStr)
 	if op == OpUnknown {
@@ -89,6 +85,8 @@ func NewConditionFromStr(conditionStr string) (*Condition, error) {
 	return &Condition{
 		path:     strings.TrimSpace(path),
 		operator: op,
-		value:    strings.TrimSpace(value),
+		value: strings.TrimFunc(value, func(c rune) bool {
+			return unicode.IsSpace(c) || c == '\'' || c == '"'
+		}),
 	}, nil
 }

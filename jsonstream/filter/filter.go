@@ -16,7 +16,8 @@ var (
 )
 
 // ProcessElem solves accordance of stream element to condition
-func ProcessElem(condition Condition, elem []byte) (resElem string, isOk bool, err error) {
+func ProcessElem(condition Condition, elem []byte) (resElem []byte, isOk bool, err error) {
+	resElem = elem
 	jsonParsed, err := gabs.ParseJSON(elem)
 	if err != nil {
 		return resElem, false, errors.Wrap(err, "parse json error")
@@ -30,7 +31,7 @@ func ProcessElem(condition Condition, elem []byte) (resElem string, isOk bool, e
 		if err != nil {
 			return resElem, false, errors.Wrapf(err, "error process path as string")
 		}
-		return jsonParsed.String(), isOk, nil
+		return resElem, isOk, nil
 	case int64:
 		isOk, err = checkInt64(val, condition)
 		if err != nil {
@@ -50,7 +51,7 @@ func ProcessElem(condition Condition, elem []byte) (resElem string, isOk bool, e
 		return resElem, false, errors.Wrapf(ErrUnsupportedType, "unsupported type of val by path '%s'", condition.path)
 	}
 
-	return jsonParsed.String(), isOk, nil
+	return resElem, isOk, nil
 }
 
 func checkString(checkVal string, condition Condition) (bool, error) {
