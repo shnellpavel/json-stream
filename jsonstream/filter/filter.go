@@ -27,7 +27,7 @@ func ProcessElem(condition Condition, elem []byte) (resElem []byte, isOk bool, e
 
 	switch val := jsonParsed.Path(condition.path).Data().(type) {
 	case string:
-		isOk, err := checkString(val, condition)
+		isOk, err = checkString(val, condition)
 		if err != nil {
 			return resElem, false, errors.Wrapf(err, "error process path as string")
 		}

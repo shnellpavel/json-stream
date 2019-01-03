@@ -11,6 +11,7 @@ import (
 // ErrInvalidOperator appears when pass a string that doesn't match any known operator
 var ErrInvalidOperator = errors.New("invalid operator")
 
+// Operator is part of condition expression that is used to compare two operands
 type Operator string
 
 // Available operators to use in conditions
@@ -41,11 +42,10 @@ func newOperator(op string) Operator {
 	return OpUnknown
 }
 
+// String casts operator to string
 func (o Operator) String() string {
 	return string(o)
 }
-
-const specialIdentRunes = "'\"._=!<>~"
 
 // Condition is parsed string expression. It used to solve inclusion of stream elem
 type Condition struct {
@@ -54,14 +54,17 @@ type Condition struct {
 	value    string
 }
 
+// Path returns path to left operand of condition
 func (c Condition) Path() string {
 	return c.path
 }
 
+// Operator returns operator of condition
 func (c Condition) Operator() Operator {
 	return c.operator
 }
 
+// Value returns value (right operand of condition)
 func (c Condition) Value() string {
 	return c.value
 }
