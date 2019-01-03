@@ -62,7 +62,7 @@ func (c *FilterCommand) Run(_ *kingpin.ParseContext) error {
 		}
 
 		if isOk {
-			fmt.Println(resLine)
+			fmt.Println(string(resLine))
 		}
 	}
 
