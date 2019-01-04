@@ -1,0 +1,12 @@
+container:
+  image: golang:1.11
+
+test_task:
+  env:
+    CIRRUS_WORKING_DIR: /go/src/github.com/$CIRRUS_REPO_FULL_NAME
+    GO111MODULE: on
+  get_script: make install-dev-deps vendor
+  lint_script: make lint
+  test_script: make test
+  cover_script: make cover
+  bench_script: make bench
