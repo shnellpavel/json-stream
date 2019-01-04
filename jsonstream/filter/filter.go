@@ -2,6 +2,7 @@ package filter
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/Jeffail/gabs"
 	"github.com/pkg/errors"
@@ -23,67 +24,63 @@ func ProcessElem(condition Condition, elem []byte) (resElem []byte, isOk bool, e
 		return resElem, false, errors.Wrap(err, "parse json error")
 	}
 
-	isOk = false
-
-	switch val := jsonParsed.Path(condition.path).Data().(type) {
-	case string:
-		isOk, err = checkString(val, condition)
-		if err != nil {
-			return resElem, false, errors.Wrapf(err, "error process path as string")
-		}
-		return resElem, isOk, nil
-	case int64:
-		isOk, err = checkInt64(val, condition)
-		if err != nil {
-			return resElem, false, errors.Wrapf(err, "error process path as int64")
-		}
-	case float64:
-		isOk, err = checkFloat64(val, condition)
-		if err != nil {
-			return resElem, false, errors.Wrapf(err, "error process path as float64")
-		}
-	case nil:
-		isOk, err = checkNil(condition)
-		if err != nil {
-			return resElem, false, errors.Wrapf(err, "error process path as nil")
-		}
-	default:
-		return resElem, false, errors.Wrapf(ErrUnsupportedType, "unsupported type of val by path '%s'", condition.path)
+	isOk, err = chechkValue(jsonParsed.Path(condition.path).Data(), condition)
+	if err != nil {
+		return resElem, false, errors.Wrap(err, "error check path")
 	}
 
 	return resElem, isOk, nil
 }
 
+func chechkValue(checkVal interface{}, condition Condition) (isOk bool, err error) {
+	switch val := checkVal.(type) {
+	case string:
+		isOk, err = checkString(val, condition)
+		if err != nil {
+			return false, errors.Wrapf(err, "error process path as string")
+		}
+	case float64:
+		isOk, err = checkFloat64(val, condition)
+		if err != nil {
+			return false, errors.Wrapf(err, "error process path as float64")
+		}
+	case nil:
+		isOk, err = checkNil(condition)
+		if err != nil {
+			return false, errors.Wrapf(err, "error process path as nil")
+		}
+	case []interface{}:
+		for _, valElem := range val {
+			elemIsOk, elemErr := chechkValue(valElem, condition)
+			if elemErr != nil {
+				return false, errors.Wrapf(elemErr, "error process elems of array in path as string")
+			}
+
+			if elemIsOk {
+				return true, nil
+			}
+		}
+	default:
+		return false, errors.Wrapf(ErrUnsupportedType, "unsupported type of val by path '%s'", condition.path)
+	}
+
+	return isOk, err
+}
+
 func checkString(checkVal string, condition Condition) (bool, error) {
 	switch condition.operator {
 	case OpEq:
-		return checkVal == condition.value, nil
+		return strings.Compare(checkVal, condition.value) == 0, nil
 	case OpNotEq:
-		return checkVal != condition.value, nil
-	default:
-		return false, errors.Wrapf(ErrUnsupportedOperator, "passed %s", condition.operator.String())
-	}
-}
-
-func checkInt64(checkVal int64, condition Condition) (bool, error) {
-	conditionVal, err := strconv.ParseFloat(condition.value, 64)
-	if err != nil {
-		return false, errors.Wrapf(err, "fail to parse '%s' as number", condition.value)
-	}
-
-	switch condition.operator {
-	case OpEq:
-		return checkVal == int64(conditionVal), nil
-	case OpNotEq:
-		return checkVal != int64(conditionVal), nil
-	case OpLt:
-		return checkVal < int64(conditionVal), nil
-	case OpLte:
-		return checkVal <= int64(conditionVal), nil
+		return strings.Compare(checkVal, condition.value) != 0, nil
 	case OpGt:
-		return checkVal > int64(conditionVal), nil
+		return strings.Compare(checkVal, condition.value) > 0, nil
 	case OpGte:
-		return checkVal >= int64(conditionVal), nil
+		return strings.Compare(checkVal, condition.value) >= 0, nil
+	case OpLt:
+		return strings.Compare(checkVal, condition.value) < 0, nil
+	case OpLte:
+		return strings.Compare(checkVal, condition.value) <= 0, nil
 	default:
 		return false, errors.Wrapf(ErrUnsupportedOperator, "passed %s", condition.operator.String())
 	}
