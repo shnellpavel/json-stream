@@ -1,5 +1,7 @@
 # Util and library to process json stream
 
+[![Build Status](https://api.cirrus-ci.com/github/shnellpavel/json-stream.svg)](https://cirrus-ci.com/github/shnellpavel/json-stream)
+
 This util may be helpful to analyze json stream by filtering necessary elements and pass them to next pipeline stage.
 
 Features:
