@@ -407,6 +407,38 @@ func TestProcessElem_TypesAndOperators(t *testing.T) {
 			},
 			expectedIsOk: false,
 		},
+		{
+			name: "Booleans. Equal. Ok",
+			args: args{
+				condition: buildCondition("attr = true"),
+				elem:      []byte(`{"attr": true}`),
+			},
+			expectedIsOk: true,
+		},
+		{
+			name: "Booleans. Equal. Not ok",
+			args: args{
+				condition: buildCondition("attr = true"),
+				elem:      []byte(`{"attr": false}`),
+			},
+			expectedIsOk: false,
+		},
+		{
+			name: "Booleans. Not equal. Ok",
+			args: args{
+				condition: buildCondition("attr != true"),
+				elem:      []byte(`{"attr": false}`),
+			},
+			expectedIsOk: true,
+		},
+		{
+			name: "Booleans. Not equal. Not ok",
+			args: args{
+				condition: buildCondition("attr != true"),
+				elem:      []byte(`{"attr": true}`),
+			},
+			expectedIsOk: false,
+		},
 	}
 	for _, testCase := range cases {
 		t.Run(testCase.name, func(t *testing.T) {

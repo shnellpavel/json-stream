@@ -6,6 +6,7 @@ Features:
 * filtering by path
     * string attributes
     * numeric attributes
+    * boolean attributes
     * array elements (using "one of" logic)
 * extracting (maybe coming soon)
 * merging (maybe coming soon)

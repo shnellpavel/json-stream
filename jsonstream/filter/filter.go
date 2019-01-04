@@ -42,7 +42,12 @@ func chechkValue(checkVal interface{}, condition Condition) (isOk bool, err erro
 	case float64:
 		isOk, err = checkFloat64(val, condition)
 		if err != nil {
-			return false, errors.Wrapf(err, "error process path as float64")
+			return false, errors.Wrapf(err, "error process path as number")
+		}
+	case bool:
+		isOk, err = checkBool(val, condition)
+		if err != nil {
+			return false, errors.Wrapf(err, "error process path as boolean")
 		}
 	case nil:
 		isOk, err = checkNil(condition)
@@ -112,4 +117,20 @@ func checkFloat64(checkVal float64, condition Condition) (bool, error) {
 
 func checkNil(condition Condition) (bool, error) {
 	return false, nil
+}
+
+func checkBool(checkVal bool, condition Condition) (bool, error) {
+	conditionVal, err := strconv.ParseBool(condition.value)
+	if err != nil {
+		return false, errors.Wrapf(err, "fail to parse '%s' as bool", condition.value)
+	}
+
+	switch condition.operator {
+	case OpEq:
+		return checkVal == conditionVal, nil
+	case OpNotEq:
+		return checkVal != conditionVal, nil
+	default:
+		return false, errors.Wrapf(ErrUnsupportedOperator, "passed %s", condition.operator.String())
+	}
 }
