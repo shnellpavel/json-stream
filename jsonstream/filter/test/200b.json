@@ -1,0 +1,10 @@
+{
+    "id": 1, 
+    "name": "John", 
+    "emails": ["john@gmail.com", "john@mail.ru"], 
+    "children": [
+        {"name": "Alex", "age": 10}, 
+        {"name": "Jinny", "age": 5}
+    ], 
+    "job": {"company": "Some firm"}
+}

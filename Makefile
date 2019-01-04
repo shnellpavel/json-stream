@@ -12,6 +12,9 @@ test:
 cover:
 	go test -cover ./...
 	
+bench:
+	go test -bench=. -benchmem ./...
+
 build:
 	go build -o $(OUTFILE) $(CLI_PATH)
 
