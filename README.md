@@ -1,6 +1,6 @@
-# Util and library to processing json stream
+# Util and library to process json stream
 
-This util may be helpful to analyze json stream by filtering nesessary elements and pass them to next pipeline stage.
+This util may be helpful to analyze json stream by filtering necessary elements and pass them to next pipeline stage.
 
 Features:
 * filtering by path
