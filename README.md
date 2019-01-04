@@ -50,12 +50,19 @@ $ go get -u -t github.com/shnellpavel/json-stream/jsonstream/filter
 ## Filtering by path
 
 Supported compare operations:
-* =  (Equals)
-* != (Not equals)
-* < (Less than)
-* <= (Less than or equal)
-* \> (Greater than)
-* \>= (Greater than or equal)
+* All types
+    * = (Equals)
+    * != (Not equals)
+* Numbers
+    * < (Less than)
+    * <= (Less than or equal)
+    * \> (Greater than)
+    * \>= (Greater than or equal)
+* Strings
+    * < (Less than)
+    * <= (Less than or equal)
+    * \> (Greater than)
+    * \>= (Greater than or equal)
 
 ### Examples
 Input (tmp.stream.json):
