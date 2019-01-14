@@ -13,7 +13,8 @@ import (
 
 // FilterCommand represents command to filter stream
 type FilterCommand struct {
-	condition string
+	condition    string
+	skipErrLines bool
 }
 
 // NewFilter constructs FilterCommand
@@ -26,6 +27,9 @@ func (c *FilterCommand) InitArgs(cmd *kingpin.CmdClause) {
 	cmd.Flag("condition", "expression with condition").
 		Required().
 		StringVar(&c.condition)
+
+	cmd.Flag("skip-err-lines", "skips lines that unable to parse").
+		BoolVar(&c.skipErrLines)
 }
 
 // Run handles command execution
@@ -58,6 +62,10 @@ func (c *FilterCommand) Run(_ *kingpin.ParseContext) error {
 
 		resLine, isOk, err := filter.ProcessElem(*filterExpr, line)
 		if err != nil {
+			if c.skipErrLines {
+				continue
+			}
+
 			return errors.Wrap(err, "process line error")
 		}
 
